@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Route, Switch, Redirect } from 'react-router-dom';
+import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
 import Header from './Header';
 import Main from './Main';
 import Footer from './Footer';
@@ -10,6 +10,7 @@ import ConfirmationPopup from './ConfirmationPopup';
 import ImagePopup from './ImagePopup';
 import api from '../utils/api';
 import { CurrentUserContext } from '../contexts/CurrentUserContext';
+import { AppContext } from '../contexts/AppContext';
 import avatarDefault from './../images/profile__avatar.svg';
 import Login from './Login';
 import Register from './Register';
@@ -17,9 +18,11 @@ import ProtectedRoute from './ProtectedRoute';
 import InfoTooltip from './InfoTooltip';
 import statusSuccessImage from './../images/success.svg';
 import statusErrorImage from './../images/error.svg';
-import { statusSuccessText, statusErrorText } from './../utils/constants';
+import { statusErrors, statusSuccessMessage } from './../utils/constants';
+import * as auth from './../utils/auth';
 
 function App() {
+  const history = useHistory();
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);                       // Стейт попап редактирования профиля открыт
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);                             // Стейт попап добавить карточку открыт
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);                         // Стейт попап редактирования аватара открыт
@@ -29,14 +32,18 @@ function App() {
   const [currentUser, setCurrentUser] = useState({                                                   // Стейт данные текущего пользователя
     name: '',
     about: '',
+    email: '',
     avatar: avatarDefault
   });
   const [cards, setCards] = useState([]);                                                            // Стейт массив карточек
-  const [loggedIn, setLoggedIn] = useState(false);                                                    // Стейт-переменная статус пользователя, вход в систему
-  const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState(false);                                 // Стейт попап редактирования аватара открыт
+  const [loggedIn, setLoggedIn] = useState(false);                                                   // Стейт-переменная статус пользователя, вход в систему
+  const [infoTooltip, setInfoTooltip] = useState({                                                   // Стейт информационного попапа статуса
+    isOpen: false,
+    image: statusSuccessImage,
+    message: statusSuccessMessage
+  });
   const [isNavOpened, setIsNavOpened] = useState(false);                                             // Стейт мобильная навигация открыта
-  const [statusImage, setStatusImage] = useState(statusSuccessImage);                                // Стейт картинки-статуса запроса Login/Register
-  const [statusText, setStatusText] = useState(statusSuccessText);                                   // Стейт текста-статуса запроса Login/Register
+  const [userEmail, setUserEmail] = useState('');                                                    // Стейт email пользователя
 
   // Обработчик клика по аватару
   function handleEditAvatarClick() {
@@ -61,7 +68,10 @@ function App() {
 
   // Функция закрытия всех попапов
   function closeAllPopups() {
-    setIsInfoTooltipOpen(false);
+    setInfoTooltip({
+      ...infoTooltip,
+      isOpen: false
+    });
     setIsEditAvatarPopupOpen(false);
     setIsEditProfilePopupOpen(false);
     setIsAddPlacePopupOpen(false);
@@ -122,16 +132,65 @@ function App() {
   }
 
   // Обработчик по кнопке Войти
-  function handleLogin() {
-    setIsInfoTooltipOpen(true);
-    console.log(statusSuccessImage);
+  function handleLogin(email) {
+    setLoggedIn(true);
+    setUserEmail(email);
+  }
+
+  // Обработчик по кнопке Зарегистрироваться
+  function handleRegister() {
+    setInfoTooltip({
+      ...infoTooltip,
+      isOpen: true,
+      image: statusSuccessImage,
+      message: statusSuccessMessage
+    });
+  }
+
+  // Обработчик ошибки по кнопке Войти
+  function handleError(form, statusError) {
+    const errors = statusErrors.filter(error => error.name === form.name)[0].errors;
+    const statusErrorMessage = errors.filter(error => error.status === statusError)[0].message;
+    setInfoTooltip({
+      ...infoTooltip,
+      isOpen: true,
+      image: statusErrorImage,
+      message: statusErrorMessage
+    });
   }
 
   // Обработчик клика по меню
   function handleNavClick() {
     setIsNavOpened(!isNavOpened);
-    console.log('Click Nav');
   }
+
+  function signOut() {
+    setLoggedIn(false);
+    setIsNavOpened(false);
+    localStorage.removeItem('token');
+    history.push('./sign-in');
+  }
+
+  // Проверка токена при повторном посещении сайта
+  function tokenCheck() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      auth.getContent(token)
+        .then(res => {
+          if (res) {
+            setUserEmail(res.data.email);
+            setLoggedIn(true);
+            history.push('/');
+          }
+        })
+    } else {
+      setLoggedIn(false);
+    }
+  }
+
+  useEffect(() => {
+    tokenCheck();
+  }, []);
 
   // Загрузка карточек по умолчанию
   useEffect(() => {
@@ -151,7 +210,7 @@ function App() {
     }
 
     (isEditProfilePopupOpen
-      || isInfoTooltipOpen
+      || infoTooltip.isOpen
       || isAddPlacePopupOpen
       || isEditAvatarPopupOpen
       || isConfirmationPopupOpen
@@ -160,7 +219,7 @@ function App() {
     return () => {
       document.removeEventListener('keydown', handleEscClose);
     }
-  }, [isInfoTooltipOpen, isEditProfilePopupOpen, isAddPlacePopupOpen, isEditAvatarPopupOpen, isConfirmationPopupOpen, selectedCard]);
+  }, [infoTooltip.isOpen, isEditProfilePopupOpen, isAddPlacePopupOpen, isEditAvatarPopupOpen, isConfirmationPopupOpen, selectedCard, closeAllPopups]);
 
   // Загрузка данных пользователя
   useEffect(() => {
@@ -172,83 +231,85 @@ function App() {
   }, []);
 
   return (
-    <CurrentUserContext.Provider value={currentUser}>
-      <div className="page__container">
-        <Header
-          loggedIn={loggedIn}
-          isNavOpened={isNavOpened}
-          onClickNav={handleNavClick}
-        />
-        <Switch>
-          <Route path="/sign-up">
-            <Register onRegister={handleLogin} />
-          </Route>
-          <Route path="/sign-in">
-            {/* {loggedIn
-              ? <Redirect to="/" />
-              : <Login onLogin={handleLogin} />
-            } */}
-            <Login onLogin={handleLogin} />
-          </Route>
-          <ProtectedRoute
-            exact path="/"
-            loggedIn={loggedIn}
-            component={Main}
-            onEditAvatar={handleEditAvatarClick}
-            onEditProfile={handleEditProfileClick}
-            onAddPlace={handleAddPlaceClick}
-            onCardClick={handleCardClick}
-            onCardLike={handleCardLike}
-            onCardDelete={handleCardDelete}
-            cards={cards}
-          >
-          </ProtectedRoute>
-          <Route path="/">
-            <Redirect to="/" />
-          </Route>
-        </Switch>
-        {loggedIn && <Footer />}
-        {/* <!-- Попап редактировать профиль --> */}
-        <EditProfilePopup
-          isOpen={isEditProfilePopupOpen}
-          onClose={closeAllPopups}
-          onUpdateUser={handleUpdateUser}
-        />
-        {/* <!-- Попап добавить карточку --> */}
-        <AddPlacePopup
-          isOpen={isAddPlacePopupOpen}
-          onClose={closeAllPopups}
-          onAddPlace={handleAddPlaceSubmit}
-        />
-        {/* <!-- Попап картинка --> */}
-        <ImagePopup
-          onClose={closeAllPopups}
-          card={selectedCard}
-        />
-        {/* <!-- Попап удаления карточки --> */}
-        <ConfirmationPopup
-          isOpen={isConfirmationPopupOpen}
-          onClose={closeAllPopups}
-          onCardDelete={handleCardDeleteSubmit}
-          card={deletedCard}
-        />
+    <AppContext.Provider value={{ loggedIn, userEmail, handleLogin, signOut }}>
+      <CurrentUserContext.Provider value={currentUser}>
+        <div className="page__container">
+          <Header
+            isNavOpened={isNavOpened}
+            onClickNav={handleNavClick}
+          />
+          <Switch>
+            <Route path="/sign-up">
+              <Register
+                handleRegister={handleRegister}
+                handleError={handleError}
+              />
+            </Route>
+            <Route path="/sign-in">
+              <Login
+                handleLogin={handleLogin}
+                handleError={handleError}
+              />
+            </Route>
+            <ProtectedRoute
+              exact path="/"
+              component={Main}
+              onEditAvatar={handleEditAvatarClick}
+              onEditProfile={handleEditProfileClick}
+              onAddPlace={handleAddPlaceClick}
+              onCardClick={handleCardClick}
+              onCardLike={handleCardLike}
+              onCardDelete={handleCardDelete}
+              cards={cards}
+            >
+            </ProtectedRoute>
+            <Route path="/">
+              <Redirect to="/" />
+            </Route>
+          </Switch>
+          {loggedIn && <Footer />}
+          {/* <!-- Попап редактировать профиль --> */}
+          <EditProfilePopup
+            isOpen={isEditProfilePopupOpen}
+            onClose={closeAllPopups}
+            onUpdateUser={handleUpdateUser}
+          />
+          {/* <!-- Попап добавить карточку --> */}
+          <AddPlacePopup
+            isOpen={isAddPlacePopupOpen}
+            onClose={closeAllPopups}
+            onAddPlace={handleAddPlaceSubmit}
+          />
+          {/* <!-- Попап картинка --> */}
+          <ImagePopup
+            onClose={closeAllPopups}
+            card={selectedCard}
+          />
+          {/* <!-- Попап удаления карточки --> */}
+          <ConfirmationPopup
+            isOpen={isConfirmationPopupOpen}
+            onClose={closeAllPopups}
+            onCardDelete={handleCardDeleteSubmit}
+            card={deletedCard}
+          />
 
-        {/* <!-- Попап обновить аватар --> */}
-        <EditAvatarPopup
-          isOpen={isEditAvatarPopupOpen}
-          onClose={closeAllPopups}
-          onUpdateAvatar={handleUpdateAvatar}
-        />
+          {/* <!-- Попап обновить аватар --> */}
+          <EditAvatarPopup
+            isOpen={isEditAvatarPopupOpen}
+            onClose={closeAllPopups}
+            onUpdateAvatar={handleUpdateAvatar}
+          />
 
-        {/* <!-- Попап статус подтверждение --> */}
-        <InfoTooltip
-          isOpen={isInfoTooltipOpen}
-          onClose={closeAllPopups}
-          statusImage={statusImage}
-          statusText={statusText}
-        />
-      </div>
-    </CurrentUserContext.Provider>
+          {/* <!-- Попап статус подтверждение --> */}
+          <InfoTooltip
+            isOpen={infoTooltip.isOpen}
+            onClose={closeAllPopups}
+            statusImage={infoTooltip.image}
+            statusMessage={infoTooltip.message}
+          />
+        </div>
+      </CurrentUserContext.Provider>
+    </AppContext.Provider>
   );
 }
 

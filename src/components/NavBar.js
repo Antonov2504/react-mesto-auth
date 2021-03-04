@@ -1,30 +1,17 @@
-import React from 'react';
-import { NavLink, useHistory } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { NavLink } from 'react-router-dom';
+import { AppContext } from '../contexts/AppContext';
 
-function NavBar({ loggedIn, isNavOpened, onClickNav }) {
-  const history = useHistory();
-
+function NavBar({ isNavOpened, onClickNav }) {
+  const value = useContext(AppContext);
   function handleClick() {
     onClickNav(!isNavOpened);
   }
 
-  function signOut() {
-    localStorage.removeItem('jwt');
-    history.push('./sign-in');
-    console.log('click logout');
-  }
-
   return (
     <>
-      {/* Меню мобильная версия */}
-      <nav className={`nav nav_type_mobile ${isNavOpened && 'nav_opened'}`}>
-        <ul className="nav__list nav__list_type_mobile">
-          <li className="nav__item nav__item_type_mobile">profile-email</li>
-          <li className="nav__item"><button type="button" className="button button_type_logout" onClick={signOut}>Выйти</button></li>
-        </ul>
-      </nav>
       {/* Меню неавторизованный пользователь */}
-      {!loggedIn &&
+      {!value.loggedIn &&
         <nav className="nav">
           <ul className="nav__list">
             <li className="nav__item"><NavLink className="nav__link" to="./sign-in" activeClassName="nav__link_active">Войти</NavLink></li>
@@ -33,15 +20,25 @@ function NavBar({ loggedIn, isNavOpened, onClickNav }) {
         </nav>
       }
       {/* Меню авторизованный пользователь */}
-      {loggedIn &&
+      {value.loggedIn &&
         <nav className="nav">
           <button type="button" className={`button button_type_open-nav ${isNavOpened && 'button_type_close-nav'}`} onClick={handleClick}></button>
           <ul className="nav__list nav__list_authorized">
-            <li className="nav__item nav__item_margin_right">profile-email</li>
-            <li className="nav__item"><button type="button" className="button button_type_logout" onClick={signOut}>Выйти</button></li>
+            <li className="nav__item nav__item_margin_right">{value.userEmail}</li>
+            <li className="nav__item"><button type="button" className="button button_type_logout" onClick={value.signOut}>Выйти</button></li>
           </ul>
         </nav>
       }
+      {/* Меню мобильная версия */}
+      {value.loggedIn &&
+        <nav className={`nav nav_type_mobile ${isNavOpened && 'nav_opened'}`}>
+          <ul className="nav__list nav__list_type_mobile">
+            <li className="nav__item nav__item_type_mobile">{value.userEmail}</li>
+            <li className="nav__item"><button type="button" className="button button_type_logout" onClick={value.signOut}>Выйти</button></li>
+          </ul>
+        </nav>
+      }
+
     </>
   );
 }

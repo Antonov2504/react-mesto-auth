@@ -1,14 +1,14 @@
 import React from 'react';
 import PopupWithForm from './PopupWithForm';
 
-function InfoTooltip({ isOpen, onClose, statusImage, statusText }) {
+function InfoTooltip({ isOpen, onClose, statusImage, statusMessage }) {
   return (
     <PopupWithForm
       isOpened={isOpen}
       onClose={onClose}
       name="sign-status"
       statusImage={statusImage}
-      title={statusText}
+      title={statusMessage}
     >
     </PopupWithForm>
   );
