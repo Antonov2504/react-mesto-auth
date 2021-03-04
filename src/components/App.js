@@ -8,7 +8,7 @@ import EditAvatarPopup from './EditAvatarPopup';
 import AddPlacePopup from './AddPlacePopup';
 import ConfirmationPopup from './ConfirmationPopup';
 import ImagePopup from './ImagePopup';
-import api from '../utils/api';
+import { api, auth } from '../utils/api';
 import { CurrentUserContext } from '../contexts/CurrentUserContext';
 import { AppContext } from '../contexts/AppContext';
 import avatarDefault from './../images/profile__avatar.svg';
@@ -19,7 +19,6 @@ import InfoTooltip from './InfoTooltip';
 import statusSuccessImage from './../images/success.svg';
 import statusErrorImage from './../images/error.svg';
 import { statusErrors, statusSuccessMessage } from './../utils/constants';
-import * as auth from './../utils/auth';
 
 function App() {
   const history = useHistory();
@@ -164,6 +163,7 @@ function App() {
     setIsNavOpened(!isNavOpened);
   }
 
+  // Выход из аккаунта
   function signOut() {
     setLoggedIn(false);
     setIsNavOpened(false);

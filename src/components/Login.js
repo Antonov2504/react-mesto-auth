@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import * as auth from './../utils/auth';
+import { auth } from './../utils/api';
 
 function Login({ handleLogin, handleError }) {
   const history = useHistory();

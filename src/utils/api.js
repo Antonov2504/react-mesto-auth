@@ -69,14 +69,6 @@ class Api {
     }
   }
 
-  // addLike(cardId) {
-
-  // }
-
-  // deleteLike(cardId) {
-
-  // }
-
   updateAvatar(avatarLink) {
     return fetch(`${this.baseUrl}/users/me/avatar`, {
       method: 'PATCH',
@@ -89,7 +81,7 @@ class Api {
   }
 }
 
-const api = new Api({
+export const api = new Api({
   baseUrl: 'https://mesto.nomoreparties.co/v1/cohort-19',
   headers: {
     authorization: 'c965dbbc-afa4-4385-8eef-dcc49737a825',
@@ -97,4 +89,71 @@ const api = new Api({
   }
 });
 
-export default api;
+class Auth {
+  constructor(options) {
+    this.baseUrl = options.baseUrl;
+  }
+
+  register = (password, email) => {
+    return fetch(`${this.baseUrl}/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password, email })
+    })
+      .then(handleOriginalResponse)
+      .then(data => {
+        if (data) {
+          return data;
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        return err;
+      });
+  }
+
+  authorize = (password, email) => {
+    return fetch(`${this.baseUrl}/signin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password, email })
+    })
+      .then(handleOriginalResponse)
+      .then(data => {
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          return data;
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        return err;
+      });
+  }
+
+  getContent = (token) => {
+    return fetch(`${this.baseUrl}/users/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`
+      },
+    })
+      .then(handleOriginalResponse)
+      .then(data => {
+        return data;
+      })
+      .catch((err) => {
+        console.log(err);
+        return err;
+      });
+  }
+}
+
+export const auth = new Auth({
+  baseUrl: 'https://auth.nomoreparties.co',
+})
