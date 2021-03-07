@@ -131,19 +131,37 @@ function App() {
   }
 
   // Обработчик по кнопке Войти
-  function handleLogin(email) {
-    setLoggedIn(true);
-    setUserEmail(email);
+  function handleLogin(evt, password, email) {
+    auth.authorize(password, email)
+      .then(data => {
+        if (data.token) {
+          setLoggedIn(true);
+          setUserEmail(email);
+          history.push('/');
+        } else {
+          handleError(evt.target, data);
+        }
+      })
+      .catch(err => console.log(err));                                          // По указанным Логину и Паролю пользователь не найден. Проверьте введенные данные и повторите попытку. 
   }
 
   // Обработчик по кнопке Зарегистрироваться
-  function handleRegister() {
-    setInfoTooltip({
-      ...infoTooltip,
-      isOpen: true,
-      image: statusSuccessImage,
-      message: statusSuccessMessage
-    });
+  function handleRegister(evt, password, email) {
+    auth.register(password, email)
+      .then(res => {
+        if (res !== 400) {
+          setInfoTooltip({
+            ...infoTooltip,
+            isOpen: true,
+            image: statusSuccessImage,
+            message: statusSuccessMessage
+          });
+          history.push('./sign-in');
+        } else {
+          handleError(evt.target, res);
+        }
+      })
+      .catch(err => console.log(err));                                                                // Обработка ошибки handleError();
   }
 
   // Обработчик ошибки по кнопке Войти

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import { auth } from './../utils/api';
+import { Link } from 'react-router-dom';
 
-function Register({ handleRegister, handleError }) {
-  const history = useHistory();
+function Register({ handleRegister }) {
   const [userData, setUserData] = useState({
     password: '',
     email: ''
@@ -20,16 +18,7 @@ function Register({ handleRegister, handleError }) {
   function handleSubmit(evt) {
     evt.preventDefault();
     const { password, email } = userData;
-    auth.register(password, email)
-      .then(res => {
-        if (res !== 400) {
-          handleRegister();
-          history.push('./sign-in');
-        } else {
-          handleError(evt.target, res);
-        }
-      })
-      .catch(err => console.log(err));                                                                // Обработка ошибки handleError();
+    handleRegister(evt, password, email);
   }
 
   return (

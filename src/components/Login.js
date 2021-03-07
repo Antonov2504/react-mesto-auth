@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import { auth } from './../utils/api';
 
-function Login({ handleLogin, handleError }) {
-  const history = useHistory();
+function Login({ handleLogin }) {
   const [userData, setUserData] = useState({
     password: '',
     email: ''
@@ -23,16 +20,7 @@ function Login({ handleLogin, handleError }) {
     if (!password || !email) {
       return;
     }
-    auth.authorize(password, email)
-      .then(data => {
-        if (data.token) {
-          handleLogin(email);
-          history.push('/');
-        } else {
-          handleError(evt.target, data);
-        }
-      })
-      .catch(err => console.log(err));                                          // По указанным Логину и Паролю пользователь не найден. Проверьте введенные данные и повторите попытку. 
+    handleLogin(evt, password, email);
   }
 
   return (
