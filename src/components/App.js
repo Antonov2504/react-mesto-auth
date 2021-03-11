@@ -43,6 +43,9 @@ function App() {
   });
   const [isNavOpened, setIsNavOpened] = useState(false);                                             // Стейт мобильная навигация открыта
   const [userEmail, setUserEmail] = useState('');                                                    // Стейт email пользователя
+  const [isLoadingCards, setIsLoadingCards] = useState(true);                                        // Стейт прелоадер загрузки карточек
+  const [isLoadingUserInfo, setIsLoadingUserInfo] = useState(true);                                  // Стейт прелоадер загрузки информации пользователя
+  const [isLoadingButtonText, setIsLoadingButtonText] = useState(false);                             // Стейт надпись на кнопке при сохранении контента
 
   // Обработчик клика по аватару
   function handleEditAvatarClick() {
@@ -83,24 +86,31 @@ function App() {
     setSelectedCard(card);
   }
 
+  // Обработчик обновления информации пользователя
   function handleUpdateUser(userInfo) {
+    setIsLoadingButtonText(true);
     api.editProfile(userInfo)
       .then(data => {
         setCurrentUser({ ...data });
         closeAllPopups();
+        setIsLoadingButtonText(false);
       })
       .catch(err => console.log(err));
   }
 
+  // Обработчик обновления аватара
   function handleUpdateAvatar({ avatar }) {
+    setIsLoadingButtonText(true);
     api.updateAvatar(avatar)
       .then(data => {
         setCurrentUser({ ...data });
         closeAllPopups();
+        setIsLoadingButtonText(false);
       })
       .catch(err => console.log(err));
   }
 
+  // Обработчик лайка картинки
   function handleCardLike(card) {
     const isLiked = card.likes.some(i => i._id === currentUser._id);
     api.changeLikeCardStatus(card._id, !isLiked)
@@ -111,21 +121,27 @@ function App() {
       .catch(err => console.log(err));
   }
 
+  // Обработчик подтверждения удаления карточки
   function handleCardDeleteSubmit(cardId) {
+    setIsLoadingButtonText(true);
     api.deleteCard(cardId)
       .then(() => {
         const newCards = cards.filter(c => c._id !== cardId);
         setCards(newCards);
         closeAllPopups();
+        setIsLoadingButtonText(false);
       })
       .catch(err => console.log(err));
   }
 
+  // Обработчик добавления карточки
   function handleAddPlaceSubmit(cardInfo) {
+    setIsLoadingButtonText(true);
     api.addCard(cardInfo)
       .then(newCard => {
         setCards([newCard, ...cards]);
         closeAllPopups();
+        setIsLoadingButtonText(false);
       })
       .catch(err => console.log(err));
   }
@@ -215,6 +231,7 @@ function App() {
     api.getInitialCards()
       .then(initialCards => {
         setCards(initialCards);
+        setIsLoadingCards(false);
       })
       .catch(err => console.log(err));
   }, []);
@@ -244,6 +261,7 @@ function App() {
     api.getUserInfo()
       .then(data => {
         setCurrentUser({ ...data });
+        setIsLoadingUserInfo(false);
       })
       .catch(err => console.log(err));
   }, []);
@@ -279,6 +297,8 @@ function App() {
               onCardLike={handleCardLike}
               onCardDelete={handleCardDelete}
               cards={cards}
+              isLoadingCards={isLoadingCards}
+              isLoadingUserInfo={isLoadingUserInfo}
             >
             </ProtectedRoute>
             <Route path="/">
@@ -291,12 +311,14 @@ function App() {
             isOpen={isEditProfilePopupOpen}
             onClose={closeAllPopups}
             onUpdateUser={handleUpdateUser}
+            isLoadingButtonText={isLoadingButtonText}
           />
           {/* <!-- Попап добавить карточку --> */}
           <AddPlacePopup
             isOpen={isAddPlacePopupOpen}
             onClose={closeAllPopups}
             onAddPlace={handleAddPlaceSubmit}
+            isLoadingButtonText={isLoadingButtonText}
           />
           {/* <!-- Попап картинка --> */}
           <ImagePopup
@@ -309,6 +331,7 @@ function App() {
             onClose={closeAllPopups}
             onCardDelete={handleCardDeleteSubmit}
             card={deletedCard}
+            isLoadingButtonText={isLoadingButtonText}
           />
 
           {/* <!-- Попап обновить аватар --> */}
@@ -316,6 +339,7 @@ function App() {
             isOpen={isEditAvatarPopupOpen}
             onClose={closeAllPopups}
             onUpdateAvatar={handleUpdateAvatar}
+            isLoadingButtonText={isLoadingButtonText}
           />
 
           {/* <!-- Попап статус подтверждение --> */}
