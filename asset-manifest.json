@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/react-mesto-auth/static/css/main.65b6bad7.chunk.css",
-    "main.js": "/react-mesto-auth/static/js/main.302626cc.chunk.js",
-    "main.js.map": "/react-mesto-auth/static/js/main.302626cc.chunk.js.map",
+    "main.js": "/react-mesto-auth/static/js/main.1188608d.chunk.js",
+    "main.js.map": "/react-mesto-auth/static/js/main.1188608d.chunk.js.map",
     "runtime-main.js": "/react-mesto-auth/static/js/runtime-main.0ff5a38d.js",
     "runtime-main.js.map": "/react-mesto-auth/static/js/runtime-main.0ff5a38d.js.map",
     "static/js/2.8efc05b3.chunk.js": "/react-mesto-auth/static/js/2.8efc05b3.chunk.js",
@@ -15,6 +15,7 @@
     "static/media/index.css": "/react-mesto-auth/static/media/trash.e3c42771.svg",
     "static/media/error.d4ce2a26.svg": "/react-mesto-auth/static/media/error.d4ce2a26.svg",
     "static/media/header__logo.047d20f8.svg": "/react-mesto-auth/static/media/header__logo.047d20f8.svg",
+    "static/media/preloaderCards.a9c8a65c.gif": "/react-mesto-auth/static/media/preloaderCards.a9c8a65c.gif",
     "static/media/profile__avatar.64512549.svg": "/react-mesto-auth/static/media/profile__avatar.64512549.svg",
     "static/media/success.a9eb6caf.svg": "/react-mesto-auth/static/media/success.a9eb6caf.svg"
   },
@@ -22,6 +23,6 @@
     "static/js/runtime-main.0ff5a38d.js",
     "static/js/2.8efc05b3.chunk.js",
     "static/css/main.65b6bad7.chunk.css",
-    "static/js/main.302626cc.chunk.js"
+    "static/js/main.1188608d.chunk.js"
   ]
 }
