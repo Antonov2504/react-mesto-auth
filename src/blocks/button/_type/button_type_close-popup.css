@@ -16,6 +16,8 @@
     height: 40px;
     background-size: auto;
     transform: translate(100%, -100%);
+    top: 0;
+    right: 0;  
   }
 }
 
