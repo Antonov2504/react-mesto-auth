@@ -26,5 +26,7 @@
     width: 40px;
     height: 40px;
     transform: translate(135%, 0%);
+    top: 0;
+    right: 0;
   }
 }
